@@ -1,0 +1,16 @@
+<launch>
+  <!-- Launch the drive_turtle_continuously node -->
+  <node pkg="turtlesimAutomata" exec="drive_turtle_continuously" name="drive_turtle_continuously" output="screen"/>
+  
+  <!-- Launch the edge node -->
+  <node pkg="turtlesimAutomata" exec="edge" name="edge" output="screen"/>
+  
+  <!-- Launch the turn_turtle node -->
+  <node pkg="turtlesimAutomata" exec="turn_turtle" name="turn_turtle" output="screen"/>
+
+  <!-- Launch the start_turtle node -->
+  <node pkg="turtlesimAutomata" exec="start_turtle" name="start_turtle" output="screen"/>
+
+  <!-- Launch the turtlesim node -->
+  <node pkg="turtlesim" exec="turtlesim_node" name="turtlesim_node" output="screen"/>
+</launch>
