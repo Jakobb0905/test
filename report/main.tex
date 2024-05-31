@@ -1,0 +1,52 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+% !TEX root = main.tex
+% !TEX spellcheck = en-US
+% ****************************************************************************************
+% File: thesis.tex
+% Author: Patrick Haselwanter
+% Date: 2023-10-28
+% ****************************************************************************************
+\documentclass[a4paper,11pt,oneside,final,titlepage,openany,onecolumn]{report}
+% input preamble (include additional packages, set options, define macros)
+\input{./tex/_preamble.tex}
+% \loadglsentries{./tex/_defns.tex}
+\begin{document}
+	\pagenumbering{alph}
+	\include{./tex/titlepage.tex}
+	\pagenumbering{Roman}
+	\pdfbookmark[0]{\contentsname}{toc} % sets a PDF bookmark
+	\tableofcontents
+	\newcounter{romanpagecount}
+	\setcounter{romanpagecount}{\value{page}}
+	\clearpage
+	\pagenumbering{arabic}
+
+	% add content here
+
+	\include{./tex/purpose_and_scope.tex}
+	\include{./tex/sensoredbldc.tex}
+
+	\include{./tex/sensorlessbldc.tex}
+	\include{./tex/focbldc.tex}
+
+	\include{./tex/conclusion.tex}
+
+	\pagenumbering{Roman}
+	\setcounter{page}{\value{romanpagecount}}
+	\stepcounter{page}
+	\printbibliography[heading=bibintoc] % This will add the bibliography to the table of contents
+	% \addcontentsline{toc}{chapter}{\bibname}
+	\listoffigures
+	% \addcontentsline{toc}{chapter}{\listfigurename}
+	\listoftables
+	% \addcontentsline{toc}{chapter}{\listtablename}
+	\clearpage
+	% \printglossary[type=acronym] % input files created by makeindex
+	% \printglossary[type=symbolslist,style=symbolsliststyle] % input files created by makeindex
+
+	\appendix
+	\include{./tex/appendix.tex}
+
+\end{document}
+% EOF

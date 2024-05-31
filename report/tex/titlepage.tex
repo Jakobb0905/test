@@ -1,0 +1,48 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+% !TEX root = ../main.tex
+% !TEX spellcheck = en-US
+% ****************************************************************************************
+% File: titlepage.tex
+% Author: Patrick Haselwanter
+% Date: 2023-10-28
+% ****************************************************************************************
+
+\thispagestyle{empty}
+\pdfbookmark[0]{Title page}{titlepage} % sets a PDF bookmark
+\thispdfpagelabel{} %  set page number shown in the tool bar of a PDF viewer
+\begin{center}
+	\textbf{\Huge \university}\par
+	\vspace{8ex}\par
+	\textbf{\LARGE \department}\par
+	\vspace{4ex}\par
+	\textbf{\Large \studyProgram}\par
+	\vspace{4ex}\par
+	\includegraphics[scale = 0.75]{MCI_Logo.pdf}\par
+	\vspace{4ex}\par
+	\textbf{\LARGE \docType}\par
+	\vspace{2ex}\par
+	\textbf{composed as part of the course\\[0.5ex] \courseName{} (\courseCode)}\par
+	\vspace{4ex}\par
+	\textbf{about}\par
+	\vspace{4ex}\par
+	\textbf{\LARGE \docTitle}\par
+	\vspace{4ex}\par
+	\textbf{from}\par
+	\vspace{4ex}\par
+	\textbf{\Large \href{\authorAContact}{\authorAName}}
+	%\textbf{\Large \href{\authorAContact}{\authorAName}\href{\authorBContact}{\authorBName}}
+\end{center}
+\vspace{4ex}
+\begin{tabular}{ll}
+	Study program & \studyProgram\\[0.5ex]
+	Year & \studyYear\\[0.5ex]
+	Course & \courseName{} (\courseCode)\\[0.5ex]
+	Name of lecturer & \href{\lecturerContact}{\lecturerName}\\[0.5ex]
+	Submission deadline & May 24, 2024
+\end{tabular}
+\vfill
+\begin{center}
+	\today
+\end{center}
+%EOF
