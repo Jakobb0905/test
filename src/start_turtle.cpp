@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     rclcpp::init(argc, argv);
     auto node = std::make_shared<StartTurtle>();
     rclcpp::spin(node);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     rclcpp::shutdown();
     return 0;
 }

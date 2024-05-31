@@ -7,12 +7,575 @@
 % Author: Patrick Haselwanter
 % Date: 2023-10-28
 % ****************************************************************************************
-\chapter{MATLAB script}
-\label{chapter:MATLAB_script}
+\chapter{\texttt{turtlesimAutomata} source code}
+\label{chapter:source_code}
 
-\begin{lstlisting}
-    clear all
+
+
+% Define custom colors for the listings
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Configure the listings package for C++
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=C++,
+    morekeywords={rclcpp, std_msgs, rcl_interfaces}, % Add more custom keywords if necessary
+}
+
+% Configure the listings package for XML
+\lstdefinestyle{xmlstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=XML,
+    morekeywords={version, xml, package, format, name, version, description, maintainer, email, license, depend, buildtool_depend, exec_depend, member_of_group, test_depend, export, build_type}, % Add more custom keywords if necessary
+}
+
+% Configure the listings package for CMake
+\lstdefinestyle{cmakestyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=make,
+    morekeywords={cmake_minimum_required, project, if, endif, find_package, add_compile_options, ament_target_dependencies, install, include_directories, ament_package, set, add_executable, ament_lint_auto_find_test_dependencies, target_include_directories, target_compile_features, ament_lint_auto, BUILD_INTERFACE, INSTALL_INTERFACE, DESTINATION, DIRECTORY, comment}, % Add more custom keywords if necessary
+}
+
+
+
+
+
+
+
+
+\lstset{style=mystyle}
+
+
+\begin{lstlisting}[caption={\texttt{/start\_turtle} source code}, label={lst:start_turtle_source_code}]
+    #include "rclcpp/rclcpp.hpp"
+    #include "rcl_interfaces/msg/log.hpp"
+    #include "std_msgs/msg/float64.hpp"
+    #include "std_msgs/msg/bool.hpp"
+    #include <cstdlib> // Include the C standard library for random number generation
+    
+    class StartTurtle : public rclcpp::Node
+    {
+    public:
+        StartTurtle() : Node("start_turtle")
+        {
+            subscription_ = this->create_subscription<rcl_interfaces::msg::Log>(
+                "/rosout", 10, std::bind(&StartTurtle::log_callback, this, std::placeholders::_1));
+            
+            angle_publisher_ = this->create_publisher<std_msgs::msg::Float64>("/turn_angle", 1);
+            //drive_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/drive_turtle", 1);
+    
+            RCLCPP_INFO(this->get_logger(), "Started 'start_turtle' node");
+        }
+    
+    private:
+        void log_callback(const rcl_interfaces::msg::Log::SharedPtr msg)
+        {
+            if (msg->msg.find("Spawning turtle") != std::string::npos)
+            {
+                RCLCPP_INFO(this->get_logger(), "Detected 'Spawning turtle' message. Proceeding with actions.");
+                std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+                publish_random_angle();
+                //std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+                //publish_drive_true();
+                rclcpp::shutdown();
+            }
+        }
+    
+        void publish_random_angle()
+        {
+            // Generate a random angle in range of 45 to 90, 135 to 180, 225 to 270, 315 to 360 degrees
+            // this ensures, that the turtle can turn away from the wall with one 90 degree clockwise turn,
+            // thus keeping the visuals interesting.
+            // (all other angles result in the turtle just drawing a straight line between two walls,
+            // as it alsways ahs to perofrm 180 degree rotations)
+            /*
+            double angle_degrees = rand() % 45;
+            int modifier = rand() % 4;
+            angle_degrees *=  -1;
+            angle_degrees += modifier * 90;
+            */
+    
+            double angle_degrees = generate_random_angle();
+    
+            auto angle_msg = std_msgs::msg::Float64();
+            angle_msg.data = angle_degrees;
+            angle_publisher_->publish(angle_msg);
+    
+            RCLCPP_INFO(this->get_logger(), "Published random angle: %.2f degrees", angle_msg.data);
+        }
+    
+        void publish_drive_true()
+        {
+            auto drive_msg = std_msgs::msg::Bool();
+            drive_msg.data = true;
+            drive_publisher_->publish(drive_msg);
+    
+            RCLCPP_INFO(this->get_logger(), "Published 'true' to /drive_turtle");
+        }
+    
+        double generate_random_angle()
+        {
+            // Seed the random number generator
+            srand(time(nullptr));
+    
+            // Define the ranges for each quadrant
+            int lower_bounds[] = {45, 135, 225, 315};
+            int upper_bounds[] = {90, 180, 270, 360};
+    
+            // Randomly select a quadrant
+            int quadrant = rand() % 4;
+    
+            // Generate a random angle within the selected quadrant
+            int angle = rand() % (upper_bounds[quadrant] - lower_bounds[quadrant] + 1) + lower_bounds[quadrant];
+    
+            return angle;
+        }
+    
+        rclcpp::Subscription<rcl_interfaces::msg::Log>::SharedPtr subscription_;
+        rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr angle_publisher_;
+        rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr drive_publisher_;
+    };
+    
+    int main(int argc, char *argv[])
+    {
+        rclcpp::init(argc, argv);
+        auto node = std::make_shared<StartTurtle>();
+        rclcpp::spin(node);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        rclcpp::shutdown();
+        return 0;
+    }
+    
 \end{lstlisting}
 
 
-% EOF
+\begin{lstlisting}[caption={\texttt{/drive\_turtle\_continuously} source code}, label={lst:drive_turtle_continuously_source_code}]
+    #include "rclcpp/rclcpp.hpp"
+    #include "std_msgs/msg/bool.hpp"
+    #include "geometry_msgs/msg/twist.hpp"
+    
+    class DriveTurtleContinuously : public rclcpp::Node
+    {
+    public:
+        DriveTurtleContinuously() : Node("drive_turtle_continuously"), drive_turtle_(false)
+        {
+            subscription_ = this->create_subscription<std_msgs::msg::Bool>(
+                "/drive_turtle", 10, std::bind(&DriveTurtleContinuously::drive_callback, this, std::placeholders::_1));
+            cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel", 10);
+            timer_ = this->create_wall_timer(
+                std::chrono::milliseconds(100), std::bind(&DriveTurtleContinuously::publish_velocity, this));
+    
+            RCLCPP_INFO(this->get_logger(), "Started 'drive_turtle_continuously' node");
+        }
+    
+    private:
+        void drive_callback(const std_msgs::msg::Bool::SharedPtr msg)
+        {
+            drive_turtle_ = msg->data;
+            if (!drive_turtle_) {
+                // Immediately stop the turtle
+                auto stop_msg = geometry_msgs::msg::Twist();
+                cmd_vel_publisher_->publish(stop_msg);
+                RCLCPP_INFO(this->get_logger(), "Received stop command. Stopping turtle.");
+            } else {
+                RCLCPP_INFO(this->get_logger(), "Received drive command. Starting turtle.");
+            }
+        }
+    
+        void publish_velocity()
+        {
+            if (drive_turtle_)
+            {
+                auto twist_msg = geometry_msgs::msg::Twist();
+                twist_msg.linear.x = 3.0;  // Set linear x velocity to 1.0
+                cmd_vel_publisher_->publish(twist_msg);
+                //RCLCPP_INFO(this->get_logger(), "Publishing cmd_vel to move turtle.");
+            }
+        }
+    
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+        rclcpp::TimerBase::SharedPtr timer_;
+        bool drive_turtle_;
+    };
+    
+    int main(int argc, char *argv[])
+    {
+        rclcpp::init(argc, argv);
+        auto node = std::make_shared<DriveTurtleContinuously>();
+        rclcpp::spin(node);
+        rclcpp::shutdown();
+        return 0;
+    }
+    
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={\texttt{/turn\_turtle} source code}, label={lst:turn_turtle_source_code}]
+    #include "rclcpp/rclcpp.hpp"
+    #include "std_msgs/msg/float64.hpp"
+    #include "std_msgs/msg/bool.hpp"
+    #include "turtlesim/srv/teleport_relative.hpp"
+    #include "geometry_msgs/msg/twist.hpp"
+    
+    class TurnTurtle : public rclcpp::Node
+    {
+    public:
+        TurnTurtle() : Node("turn_turtle")
+        {
+            subscription_ = this->create_subscription<std_msgs::msg::Float64>(
+                "/turn_angle", 1, std::bind(&TurnTurtle::angle_callback, this, std::placeholders::_1));
+            
+            client_ = this->create_client<turtlesim::srv::TeleportRelative>("turtle1/teleport_relative");
+            //cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel", 1);
+            drive_turtle_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/drive_turtle", 1);
+    
+            RCLCPP_INFO(this->get_logger(), "Started 'turn_turtle' node");
+        }
+    
+    private:
+        void angle_callback(const std_msgs::msg::Float64::SharedPtr msg)
+        {
+            double angle_degrees = msg->data;
+            RCLCPP_INFO(this->get_logger(), "Received angle: %.2f degrees. Stopping and turning turtle.", angle_degrees);
+            turn_turtle(angle_degrees);
+        }
+    
+        void turn_turtle(double angle_degrees)
+        {
+            // Stop the turtle's current movement
+            /*
+            auto stop_message = geometry_msgs::msg::Twist();
+            stop_message.linear.x = 0.0;
+            stop_message.angular.z = 0.0;
+            cmd_vel_publisher_->publish(stop_message);
+            */
+            rclcpp::sleep_for(std::chrono::seconds(1)); // Wait for a second to ensure it stops
+    
+            if (!client_->wait_for_service(std::chrono::seconds(1))) {
+                RCLCPP_ERROR(this->get_logger(), "Service not available. Make sure the turtlesim node is running.");
+                return;
+            }
+    
+            auto request = std::make_shared<turtlesim::srv::TeleportRelative::Request>();
+            request->linear = 0.0;
+            request->angular = angle_degrees * (M_PI / 180.0); // Convert degrees to radians
+    
+            auto result = client_->async_send_request(request);
+            // Don't wait for the service to respond! It does not.
+    
+            // Notify that the turning is finished
+            auto drive_message = std_msgs::msg::Bool();
+            drive_message.data = true;
+            rclcpp::sleep_for(std::chrono::seconds(1));
+            drive_turtle_publisher_->publish(drive_message);
+        }
+    
+        rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr subscription_;
+        rclcpp::Client<turtlesim::srv::TeleportRelative>::SharedPtr client_;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+        rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr drive_turtle_publisher_;
+    };
+    
+    int main(int argc, char *argv[])
+    {
+        rclcpp::init(argc, argv);
+        auto node = std::make_shared<TurnTurtle>();
+        rclcpp::spin(node);
+        rclcpp::shutdown();
+        return 0;
+    }
+    
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={\texttt{/edge} source code}, label={lst:edge_source_code}]
+#include "rclcpp/rclcpp.hpp"
+#include "rcl_interfaces/msg/log.hpp"
+#include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/bool.hpp"
+
+class Edge : public rclcpp::Node
+{
+public:
+    Edge() : Node("edge"), should_look_for_edges_(false)
+    {
+        drive_turtle_subscription_ = this->create_subscription<std_msgs::msg::Bool>(
+            "/drive_turtle", 1, std::bind(&Edge::drive_turtle_callback, this, std::placeholders::_1));
+        turn_angle_publisher_ = this->create_publisher<std_msgs::msg::Float64>("/turn_angle", 1);
+        drive_turtle_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/drive_turtle", 1);
+
+        RCLCPP_INFO(this->get_logger(), "Started 'edge' node");
+    }
+
+private:
+    void subscribe_to_rosout()
+    {
+        rosout_subscription_ = this->create_subscription<rcl_interfaces::msg::Log>(
+            "/rosout", 1, std::bind(&Edge::listener_callback, this, std::placeholders::_1));
+    }
+
+    void drive_turtle_callback(const std_msgs::msg::Bool::SharedPtr msg)
+    {
+        should_look_for_edges_ = msg->data;
+        if (should_look_for_edges_)
+        {
+            RCLCPP_INFO(this->get_logger(), "Received true on /drive_turtle. Subscribing to /rosout for edge detection.");
+            subscribe_to_rosout();
+        }
+        else
+        {
+            RCLCPP_INFO(this->get_logger(), "Received false on /drive_turtle. Unsubscribing from /rosout.");
+            rosout_subscription_.reset();
+        }
+    }
+
+    void listener_callback(const rcl_interfaces::msg::Log::SharedPtr msg)
+    {
+        if (should_look_for_edges_ && msg->msg.find("Oh no! I hit the wall!") != std::string::npos)
+        {
+            RCLCPP_INFO(this->get_logger(), "Received message: 'Oh no! I hit the wall!'. Publishing angle and stopping turtle...");
+            publish_drive_turtle(false);
+            publish_turn_angle();
+            // Unsubscribing from /rosout for 5 milliseconds to avoid multiple wall-hitting messages
+            /**/
+            rosout_subscription_.reset();
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            //subscribe_to_rosout();
+        }
+    }
+
+    void publish_turn_angle()
+    {
+        auto message = std_msgs::msg::Float64();
+        message.data = -90.0; // 90 degrees clockwise
+        turn_angle_publisher_->publish(message);
+    }
+
+    void publish_drive_turtle(bool data)
+    {
+        auto message = std_msgs::msg::Bool();
+        message.data = data;
+        drive_turtle_publisher_->publish(message);
+    }
+
+    rclcpp::Subscription<rcl_interfaces::msg::Log>::SharedPtr rosout_subscription_;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr drive_turtle_subscription_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr turn_angle_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr drive_turtle_publisher_;
+    bool should_look_for_edges_;
+};
+
+int main(int argc, char *argv[])
+{
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<Edge>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}
+\end{lstlisting}
+
+
+
+\chapter{Auxiliary files}
+\label{chapter:aux_files}
+
+
+\lstset{style=cmakestyle}
+\begin{lstlisting}[caption={CMakeLists.txt}, label={lst:CMakeLists}]
+
+    cmake_minimum_required(VERSION 3.8)
+    project(turtlesimAutomata)
+    
+    if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      add_compile_options(-Wall -Wextra -Wpedantic)
+    endif()
+    
+    # find dependencies
+    find_package(ament_cmake REQUIRED)
+    # uncomment the following section in order to fill in
+    # further dependencies manually.
+    # find_package(<dependency> REQUIRED)
+    find_package(rclcpp REQUIRED)
+    find_package(std_msgs REQUIRED)
+    #find_package(rosidl_default_generators REQUIRED)
+    #find_package(turtlesimAutomata REQUIRED)
+    find_package(turtlesim REQUIRED)
+    find_package(geometry_msgs REQUIRED)
+    find_package(rcl_interfaces)
+    
+    
+    #rosidl_generate_interfaces(${PROJECT_NAME}
+    #  "srv/acknowledge.srv"
+    #  DEPENDENCIES std_msgs
+    #)
+    
+    # Include directories
+    include_directories(include)
+    
+    
+    
+    add_executable(edge src/edge.cpp)
+    ament_target_dependencies(edge rclcpp std_msgs)
+    #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    #  $<INSTALL_INTERFACE:include>)
+    #target_compile_features(edge PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+    
+    add_executable(turn_turtle src/turn_turtle.cpp)
+    ament_target_dependencies(turn_turtle rclcpp std_msgs turtlesim geometry_msgs)
+    
+    add_executable(drive_turtle_continuously src/drive_turtle_continuously.cpp)
+    ament_target_dependencies(drive_turtle_continuously std_msgs rclcpp geometry_msgs)
+    
+    add_executable(start_turtle src/start_turtle.cpp)
+    ament_target_dependencies(start_turtle std_msgs rclcpp rcl_interfaces)
+    target_include_directories(turn_turtle PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+      $<INSTALL_INTERFACE:include>)
+    target_compile_features(turn_turtle PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+    
+    
+    install(TARGETS
+      edge
+      turn_turtle
+      drive_turtle_continuously
+      start_turtle
+      
+      DESTINATION lib/${PROJECT_NAME})
+    
+      
+    #this is important for the launchfile to be accesible from the ros2_ws
+    install(DIRECTORY launch
+    DESTINATION share/${PROJECT_NAME})
+    
+    
+    
+    if(BUILD_TESTING)
+      find_package(ament_lint_auto REQUIRED)
+      # the following line skips the linter which checks for copyrights
+      # comment the line when a copyright and license is added to all source files
+      set(ament_cmake_copyright_FOUND TRUE)
+      # the following line skips cpplint (only works in a git repo)
+      # comment the line when this package is in a git repo and when
+      # a copyright and license is added to all source files
+      set(ament_cmake_cpplint_FOUND TRUE)
+      ament_lint_auto_find_test_dependencies()
+    endif()
+    
+    ament_package()
+    
+
+\end{lstlisting}
+
+
+
+\lstset{style=xmlstyle}
+\begin{lstlisting}[caption={Package.xml}, label={lst:packagexml}]
+    <?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>turtlesimAutomata</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="jakobspindler@gmx.at">jakob</maintainer>
+  <license>Apache-2.0</license>
+
+  <!--depend>std_msgs</depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group-->
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>turtlesim</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rcl_interfaces</depend>
+
+
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <exec_depend>ros2launch</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+
+\end{lstlisting}
+
+\lstset{style=xmlstyle}
+
+\begin{lstlisting}[caption={turtlesimAutomata\_launch.xml}, label={lst:launchfile}]
+    <launch>
+    <!-- Launch the drive_turtle_continuously node -->
+    <node pkg="turtlesimAutomata" exec="drive_turtle_continuously" name="drive_turtle_continuously" output="screen"/>
+    
+    <!-- Launch the edge node -->
+    <node pkg="turtlesimAutomata" exec="edge" name="edge" output="screen"/>
+    
+    <!-- Launch the turn_turtle node -->
+    <node pkg="turtlesimAutomata" exec="turn_turtle" name="turn_turtle" output="screen"/>
+  
+    <!-- Launch the start_turtle node -->
+    <node pkg="turtlesimAutomata" exec="start_turtle" name="start_turtle" output="screen"/>
+  
+    <!-- Launch the turtlesim node -->
+    <node pkg="turtlesim" exec="turtlesim_node" name="turtlesim_node" output="screen"/>
+  </launch>
+\end{lstlisting}
+
+
+%EOF
