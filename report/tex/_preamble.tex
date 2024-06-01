@@ -29,7 +29,7 @@
 \newcommand{\courseName}{Mobile Robotics}
 \newcommand{\courseCode}{MECH-M-2-ROB}
 \newcommand{\department}{Department of Technology \& Life Sciences}
-\newcommand{\docTitle}{TurtlesimAutomata - dipping the toe into ROS}
+\newcommand{\docTitle}{TurtlesimAutomata - a first dip into ROS2}
 \newcommand{\docType}{Software report}
 \newcommand{\studyProgram}{Master's program Mechatronics \& Smart Technologies}
 \newcommand{\studyYear}{MA-MECH-23-VZ}
@@ -152,46 +152,47 @@
 	backend=biber,
 	style=numeric,
 	natbib=true,
-	sorting=nty
+	sorting=none
 ]{biblatex}
 %\addbibresource{C:/Users/pober/OneDrive/StudiumMaster/latex/Master.bib}
 %\addbibresource{Master2.bib}
 % \addbibresource{../../../../bib/mybib.bib}
+\addbibresource{/bib/bib.bib}
 
 % \addbibresource{C:\\Users\\pober\\OneDrive\\StudiumMaster\\latex\\Master.bib} % point BibTEX at the .bib files
-% \bibliographystyle{IEEEtran} % choose the reference style
+%\bibliographystyle{IEEEtran} % choose the reference style
 % ****************************************************************************************
 % Glossary (acronyms, list of symbols) settings
 % ****************************************************************************************
-% \usepackage[acronym,nomain,nonumberlist,nopostdot,sort=def,toc]{glossaries}
-% \renewcommand*{\glstextformat}[1]{\textcolor{black}{#1}} % make links appear black
-% \newglossary[slg]{symbolslist}{syi}{syg}{List of Symbols} % define custom glossary
-% \glsaddkey% define custom key
-% 	{unit}% key
-% 	{\glsentrytext{\glslabel}}% default value
-% 	{\glsentryunit}% command analogous to \glsentrytext
-% 	{\GLsentryunit}% command analogous to \Glsentrytext
-% 	{\glsunit}% command analogous to \glstext
-% 	{\Glsunit}% command analogous to \Glstext
-% 	{\GLSunit}% command analogous to \GLStext
-% \glssetnoexpandfield{unit}
-% \makeglossaries % create makeindex files
+\usepackage[acronym,nomain,nonumberlist,nopostdot,sort=def,toc]{glossaries}
+\renewcommand*{\glstextformat}[1]{\textcolor{black}{#1}} % make links appear black
+\newglossary[slg]{symbolslist}{syi}{syg}{List of Symbols} % define custom glossary
+\glsaddkey% define custom key
+	{unit}% key
+	{\glsentrytext{\glslabel}}% default value
+	{\glsentryunit}% command analogous to \glsentrytext
+	{\GLsentryunit}% command analogous to \Glsentrytext
+	{\glsunit}% command analogous to \glstext
+	{\Glsunit}% command analogous to \Glstext
+	{\GLSunit}% command analogous to \GLStext
+\glssetnoexpandfield{unit}
+\makeglossaries % create makeindex files
 
-% \newglossarystyle{symbolsliststyle}{%
-% 	\setglossarystyle{long3col}% style based on long3col
-% 	\renewenvironment{theglossary}{%
-% 		\begin{longtable}{lp{\glsdescwidth}>{\arraybackslash}p{2cm}}}%
-% 		{\end{longtable}}%
-% 	\renewcommand*{\glossaryheader}{% change the table header
-% 		\bfseries Symbol & \bfseries Description & \bfseries Unit\\\hline%
-% 		\endhead}%
-% 	\renewcommand*{\glossentry}[2]{% change the displayed items
-% 		\glstarget{##1}{\glossentryname{##1}}% name
-% 		& \glossentrydesc{##1}% description
-% 		& $\glsentryunit{##1}$% unit
-% 		\tabularnewline
-% 	}%
-% }
+\newglossarystyle{symbolsliststyle}{%
+	\setglossarystyle{long3col}% style based on long3col
+	\renewenvironment{theglossary}{%
+		\begin{longtable}{lp{\glsdescwidth}>{\arraybackslash}p{2cm}}}%
+		{\end{longtable}}%
+	\renewcommand*{\glossaryheader}{% change the table header
+		\bfseries Symbol & \bfseries Description & \bfseries Unit\\\hline%
+		\endhead}%
+	\renewcommand*{\glossentry}[2]{% change the displayed items
+		\glstarget{##1}{\glossentryname{##1}}% name
+		& \glossentrydesc{##1}% description
+		& $\glsentryunit{##1}$% unit
+		\tabularnewline
+	}%
+}
 
 % ****************************************************************************************
 % Page layout and headers

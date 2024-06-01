@@ -1,0 +1,21 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+% !TEX root = ../main.tex
+% !TEX spellcheck = en-US
+% ****************************************************************************************
+% File: purpose_and_scope.tex
+% Author: Patrick Haselwanter
+% Date: 2023-10-28
+% ****************************************************************************************
+\chapter{Possible improvements}
+\label{chapter:conclusion}
+
+The \texttt{turtlesimAutomata} package does a good job of fullfilling the given requirements. However, there are some possible improvements that could be made to the package. 
+
+For example, under certain conditions, the turtle may leave the window without the \texttt{turtlesim\_node} noticing, which sometimes results in the turtle going off into the void. This could be fixed by either polling the turtle's current pose (and making sure it is still in the window coordinates) or by making use of the message sent by the \texttt{turtlesim\_node} when the turtle unexpectedly left the window.
+
+Currently the \texttt{turtlesimAutomata} package uses the \emph{/teleport\_relative} service to turn the turtle. This may also be done via the \emph{/rotate\_absolute} action, which would implement a more realistic turning behaviour, as it would not happen instataneously, but rather with a smooth motion.
+
+By allowing the \texttt{turtlesimAutomata} package to accept arguments on startup, the user could specify several parameters, such as the initial position of the turtle, the speed of the turtle, or the angle it shall turn when hitting a wall. These arguments may even be updated on runtime. This would make the package more versatile and user-friendly.
+
+% EOF
